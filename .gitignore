@@ -35,3 +35,17 @@ htmlcov/
 Thumbs.db
 *.swp
 *.swo
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Machine Learning model
+backend/aqi_random_forest.pkl
