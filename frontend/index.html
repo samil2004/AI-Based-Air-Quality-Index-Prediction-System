@@ -1,0 +1,599 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1b2029">
+    <title>AirView | AI Air Quality Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+    <a class="brand" href="#dashboard">
+        <span class="wind">≋</span> AirView
+    </a>
+
+    <div class="topbar-actions">
+        <span id="apiStatus" class="api-status checking">
+            <i></i> Checking API
+        </span>
+        <a class="home-link" href="#dashboard">
+            Back to Home <span>↗</span>
+        </a>
+    </div>
+</header>
+
+<main class="wrap" id="dashboard">
+
+    <!-- PAGE HEADING -->
+    <section class="page-heading">
+        <div>
+            <p class="page-eyebrow">AIR QUALITY MONITORING & ANALYTICS</p>
+            <h1>Air Quality Dashboard</h1>
+            <p class="page-subtitle">Where Every Breath Counts</p>
+        </div>
+
+        <div class="location-display">
+            <span id="locationText">Location: Select an Indian state</span>
+            <span id="clock">Time: --:--:--</span>
+        </div>
+    </section>
+
+
+    <!-- TOP SECTION -->
+    <section class="top-grid">
+
+        <!-- AQI GAUGE -->
+        <article class="card gauge-card">
+
+            <div class="section-label">CURRENT PREDICTION</div>
+
+            <div class="aqi-number" id="aqiNumber">--</div>
+
+            <h2>
+                Category:
+                <span id="aqiCategory">Awaiting prediction</span>
+            </h2>
+
+            <div class="gauge-wrap">
+                <svg viewBox="0 0 320 190"
+                     class="gauge"
+                     aria-label="AQI gauge from zero to five hundred">
+
+                    <path d="M 35 155 A 125 125 0 0 1 285 155"
+                          class="gauge-base"/>
+
+                    <path d="M 35 155 A 125 125 0 0 1 51.75 92.5"
+                          class="gauge-seg good"/>
+
+                    <path d="M 51.75 92.5 A 125 125 0 0 1 97.5 46.75"
+                          class="gauge-seg satisfactory"/>
+
+                    <path d="M 97.5 46.75 A 125 125 0 0 1 160 30"
+                          class="gauge-seg moderate"/>
+
+                    <path d="M 160 30 A 125 125 0 0 1 222.5 46.75"
+                          class="gauge-seg poor"/>
+
+                    <path d="M 222.5 46.75 A 125 125 0 0 1 268.25 92.5"
+                          class="gauge-seg very-poor"/>
+
+                    <path d="M 268.25 92.5 A 125 125 0 0 1 285 155"
+                          class="gauge-seg severe"/>
+
+                    <line id="needle"
+                          x1="160" y1="155"
+                          x2="160" y2="48"
+                          class="needle"/>
+
+                    <circle cx="160" cy="155" r="8"
+                            class="needle-pin"/>
+                </svg>
+            </div>
+
+            <p class="gauge-hint">
+                AQI scale · 0–500 · Needle capped at 500
+            </p>
+
+            <div class="gauge-legend">
+                <span><i class="dot good-dot"></i> Good</span>
+                <span><i class="dot moderate-dot"></i> Moderate</span>
+                <span><i class="dot poor-dot"></i> Poor</span>
+                <span><i class="dot severe-dot"></i> Severe</span>
+            </div>
+
+        </article>
+
+
+        <!-- LOCATION SELECTOR -->
+        <article class="card location-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">LOCATION SETTINGS</p>
+                    <h2>Select Location</h2>
+                </div>
+
+                <span class="live-label">
+                    <i></i> India
+                </span>
+            </div>
+
+            <p class="location-intro">
+                Choose the Indian state and city for your AQI prediction.
+            </p>
+
+            <div class="location-selector">
+
+                <label>
+                    State / Union Territory
+
+                    <select id="stateSelect">
+                        <option value="">Choose state / UT</option>
+                    </select>
+                </label>
+
+                <label>
+                    City / District
+
+                    <input
+                        id="cityInput"
+                        type="text"
+                        placeholder="Enter city or district"
+                        maxlength="80"
+                    >
+                </label>
+
+                <button type="button"
+                        class="select-location-btn"
+                        id="applyLocation">
+                    Apply Location <span>↗</span>
+                </button>
+
+            </div>
+
+            <div class="selected-location">
+                <span class="location-pin">⌖</span>
+
+                <div>
+                    <small>SELECTED LOCATION</small>
+                    <strong id="selectedLocation">
+                        No location selected
+                    </strong>
+                </div>
+            </div>
+
+            <p class="location-note">
+                Location is used to label and organize predictions.
+                It does not provide live monitoring data.
+            </p>
+
+        </article>
+
+    </section>
+
+
+    <!-- AQI HISTORY AND POLLUTANTS -->
+    <section class="bottom-grid">
+
+        <!-- AQI HISTORY -->
+        <article class="card history-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">RECENT RESULTS</p>
+                    <h2>AQI History</h2>
+                </div>
+
+                <select id="historyRange" aria-label="History range">
+                    <option value="7">Last 7 entries</option>
+                    <option value="14">Last 14 entries</option>
+                    <option value="30">Last 30 entries</option>
+                </select>
+            </div>
+
+            <div class="chart-wrap">
+                <canvas id="historyChart"></canvas>
+            </div>
+
+            <p class="chart-caption">
+                <span class="caption-dot"></span>
+                Saved prediction history
+            </p>
+
+        </article>
+
+
+        <!-- POLLUTANT ANALYSIS -->
+        <article class="card pollutants-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">AIR COMPOSITION</p>
+                    <h2>Pollutant Analysis</h2>
+                </div>
+
+                <span class="muted" id="lastUpdated">
+                    No prediction yet
+                </span>
+            </div>
+
+            <div class="pollutant-grid" id="pollutantGrid">
+
+                <div class="pollutant">
+                    <b>CO</b>
+                    <strong>--</strong>
+                    <small>mg/m³</small>
+                </div>
+
+                <div class="pollutant">
+                    <b>NO₂</b>
+                    <strong>--</strong>
+                    <small>µg/m³</small>
+                </div>
+
+                <div class="pollutant">
+                    <b>O₃</b>
+                    <strong>--</strong>
+                    <small>µg/m³</small>
+                </div>
+
+                <div class="pollutant">
+                    <b>PM10</b>
+                    <strong>--</strong>
+                    <small>µg/m³</small>
+                </div>
+
+                <div class="pollutant">
+                    <b>PM2.5</b>
+                    <strong>--</strong>
+                    <small>µg/m³</small>
+                </div>
+
+                <div class="pollutant">
+                    <b>SO₂</b>
+                    <strong>--</strong>
+                    <small>µg/m³</small>
+                </div>
+
+            </div>
+
+            <div class="distribution-wrap">
+                <p class="distribution-title">Pollutant concentration distribution</p>
+
+                <div class="distribution-chart">
+                    <canvas id="pollutantChart"></canvas>
+                </div>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- MODEL PERFORMANCE -->
+    <section class="card performance-section">
+
+        <div class="card-title">
+            <div>
+                <p class="section-label">MACHINE LEARNING MODEL</p>
+                <h2>Model Performance</h2>
+            </div>
+
+            <span class="model-tag">
+                Random Forest Regression
+            </span>
+        </div>
+
+        <div class="performance-grid">
+
+            <article class="metric-card">
+                <div class="metric-top">
+                    <span class="metric-label">MAE</span>
+                    <span class="metric-icon">↘</span>
+                </div>
+                <strong id="maeValue">--</strong>
+                <small>Mean Absolute Error</small>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-top">
+                    <span class="metric-label">MSE</span>
+                    <span class="metric-icon">∑</span>
+                </div>
+                <strong id="mseValue">--</strong>
+                <small>Mean Squared Error</small>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-top">
+                    <span class="metric-label">RMSE</span>
+                    <span class="metric-icon">√</span>
+                </div>
+                <strong id="rmseValue">--</strong>
+                <small>Root Mean Squared Error</small>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-top">
+                    <span class="metric-label">R² SCORE</span>
+                    <span class="metric-icon">%</span>
+                </div>
+                <strong id="r2Value">--</strong>
+                <small>Coefficient of Determination</small>
+            </article>
+
+        </div>
+
+        <p class="analytics-note" id="performanceNote">
+            Evaluation metrics will load from FastAPI.
+        </p>
+
+    </section>
+
+
+    <!-- ANALYTICS -->
+    <section class="analytics-grid">
+
+        <!-- ACTUAL VS PREDICTED -->
+        <article class="card analytics-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">REGRESSION ANALYSIS</p>
+                    <h2>Actual vs. Predicted AQI</h2>
+                </div>
+
+                <span class="muted">Test dataset</span>
+            </div>
+
+            <div class="analytics-chart">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+
+            <p class="analytics-note" id="comparisonNote">
+                Actual and predicted test values will appear here.
+            </p>
+
+        </article>
+
+
+        <!-- FEATURE IMPORTANCE -->
+        <article class="card analytics-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">MODEL INTERPRETATION</p>
+                    <h2>Feature Importance</h2>
+                </div>
+
+                <span class="muted">Random Forest</span>
+            </div>
+
+            <div class="analytics-chart">
+                <canvas id="importanceChart"></canvas>
+            </div>
+
+            <p class="analytics-note" id="importanceNote">
+                Feature importance will load from the trained model.
+            </p>
+
+        </article>
+
+
+        <!-- CORRELATION HEATMAP -->
+        <article class="card analytics-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">DATASET ANALYSIS</p>
+                    <h2>Pollutant Correlation Heatmap</h2>
+                </div>
+
+                <span class="muted">Correlation</span>
+            </div>
+
+            <div id="correlationHeatmap" class="heatmap-placeholder">
+                Correlation matrix will appear here.
+            </div>
+
+            <p class="analytics-note" id="correlationNote">
+                Correlation values range from -1 to +1.
+            </p>
+
+        </article>
+
+
+        <!-- HISTORICAL TRENDS -->
+        <article class="card analytics-card">
+
+            <div class="card-title">
+                <div>
+                    <p class="section-label">HISTORICAL DATA</p>
+                    <h2>Historical AQI Trends</h2>
+                </div>
+
+                <span class="muted">Dataset records</span>
+            </div>
+
+            <div class="analytics-chart">
+                <canvas id="historicalChart"></canvas>
+            </div>
+
+            <p class="analytics-note" id="historicalNote">
+                Historical dataset trends will appear here.
+            </p>
+
+        </article>
+
+    </section>
+
+
+    <!-- PREDICTION HISTORY -->
+    <section class="card prediction-history-card">
+
+        <div class="card-title">
+            <div>
+                <p class="section-label">DATABASE RECORDS</p>
+                <h2>Prediction History</h2>
+            </div>
+
+            <span class="muted">PostgreSQL saved records</span>
+        </div>
+
+        <div id="predictionHistory" class="prediction-history-list">
+            <p class="analytics-note">Loading prediction history...</p>
+        </div>
+
+    </section>
+
+
+    <!-- PREDICTION INPUT -->
+    <section class="card input-card" id="predict">
+
+        <div class="card-title">
+
+            <div>
+                <p class="overline">MODEL INPUT</p>
+                <h2>Run an AQI Prediction</h2>
+            </div>
+
+            <span class="muted">Random Forest Regression</span>
+
+        </div>
+
+        <form id="predictionForm">
+
+            <div class="form-grid pollutant-fields">
+
+                <label>
+                    PM2.5 <small>µg/m³</small>
+
+                    <input
+                        type="number"
+                        name="pm25"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 25.91"
+                        required
+                    >
+                </label>
+
+                <label>
+                    PM10 <small>µg/m³</small>
+
+                    <input
+                        type="number"
+                        name="pm10"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 57.27"
+                        required
+                    >
+                </label>
+
+                <label>
+                    NO₂ <small>µg/m³</small>
+
+                    <input
+                        type="number"
+                        name="no2"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 8"
+                        required
+                    >
+                </label>
+
+                <label>
+                    CO <small>mg/m³</small>
+
+                    <input
+                        type="number"
+                        name="co"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 0.38"
+                        required
+                    >
+                </label>
+
+                <label>
+                    O₃ <small>µg/m³</small>
+
+                    <input
+                        type="number"
+                        name="o3"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 41.7"
+                        required
+                    >
+                </label>
+
+                <label>
+                    SO₂ <small>µg/m³</small>
+
+                    <input
+                        type="number"
+                        name="so2"
+                        min="0"
+                        step="any"
+                        placeholder="e.g. 6.29"
+                        required
+                    >
+                </label>
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button
+                    class="predict-btn"
+                    type="submit"
+                    id="predictBtn"
+                >
+                    Predict AQI <span>↗</span>
+                </button>
+
+                <button
+                    class="clear-btn"
+                    type="reset"
+                >
+                    Clear values
+                </button>
+
+                <span id="formMessage" role="status" aria-live="polite">
+                    Enter six pollutant values to predict AQI.
+                </span>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer>
+        <span>AirView · AI-Based AQI Prediction System</span>
+        <span>Historical dataset predictions are not live sensor readings.</span>
+    </footer>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
