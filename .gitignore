@@ -1,3 +1,4 @@
+
 # Python
 __pycache__/
 *.py[cod]
@@ -9,12 +10,12 @@ venv/
 **/.venv/
 **/venv/
 
-# Environment variables and local secrets
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
 
-# Test, type-checker, and linter caches
+# Testing and cache files
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -35,17 +36,6 @@ htmlcov/
 Thumbs.db
 *.swp
 *.swo
-
-# Python
-venv/
-__pycache__/
-*.pyc
-
-# Environment variables
-.env
-
-# Jupyter
-.ipynb_checkpoints/
 
 # Machine Learning model
 backend/aqi_random_forest.pkl
